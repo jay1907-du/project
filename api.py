@@ -46,14 +46,18 @@ daily_reservoir = (
     .reset_index()
 )
 
-daily_reservoir["date"] = pd.to_datetime(daily_reservoir["date"])
+daily_reservoir["date"] = pd.to_datetime(
+    daily_reservoir["date"]
+)
 
 
 # =========================
 # Create water level change
 # =========================
 daily_reservoir["water_level_change"] = (
-    daily_reservoir["Manual Daily Reservoir water level (m)"].diff()
+    daily_reservoir[
+        "Manual Daily Reservoir water level (m)"
+    ].diff()
 )
 
 
@@ -85,18 +89,10 @@ rainfall_daily["date"] = pd.to_datetime(
     rainfall_daily["date"]
 )
 
-rainfall_daily["rainfall_3d"] = (
-    rainfall_daily["rainfall_1d"]
-    .rolling(3)
-    .sum()
-)````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
 
-rainfall_daily["rainfall_7d"] = (
-    rainfall_daily["rainfall_1d"]
-    .rolling(7)
-    .sum()
-)
-
+# =========================
+# Rainfall rolling features
+# =========================
 rainfall_daily["rainfall_3d"] = (
     rainfall_daily["rainfall_1d"]
     .rolling(3)
@@ -136,7 +132,9 @@ features = [
 
 X = final_df[features]
 
-y = final_df["Manual Daily Reservoir water level (m)"].shift(-1)
+y = final_df[
+    "Manual Daily Reservoir water level (m)"
+].shift(-1)
 
 valid = y.notna()
 
@@ -171,7 +169,9 @@ def predict(data: PredictionInput):
         "rainfall_7d": data.rainfall_7d
     }])
 
-    next_day_prediction = model.predict(input_data)[0]
+    next_day_prediction = model.predict(
+        input_data
+    )[0]
 
     predicted_change = (
         next_day_prediction - data.water_level
@@ -185,7 +185,8 @@ def predict(data: PredictionInput):
     predicted_risk_score = (
         0.6 * predicted_level_percent
         +
-        0.4 * max(0, predicted_change) / 0.15 * 100
+        0.4 * max(0, predicted_change)
+        / 0.15 * 100
     )
 
     predicted_risk_score = max(
@@ -216,6 +217,9 @@ def predict(data: PredictionInput):
     }
 
 
+# =========================
+# Home endpoint
+# =========================
 @app.get("/")
 def home():
     return {
