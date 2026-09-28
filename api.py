@@ -1,4 +1,4 @@
-```python
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 import numpy as np
