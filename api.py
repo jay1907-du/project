@@ -225,3 +225,51 @@ def home():
     return {
         "message": "DAM EWS API is running"
     }
+    @app.get("/live-predict")
+def live_predict(
+    water_level: float,
+    rainfall_1d: float,
+    rainfall_3d: float,
+    rainfall_7d: float
+):
+    water_level_change = 0.05
+
+    input_data = pd.DataFrame([{
+        "Manual Daily Reservoir water level (m)": water_level,
+        "water_level_change": water_level_change,
+        "rainfall_1d": rainfall_1d,
+        "rainfall_3d": rainfall_3d,
+        "rainfall_7d": rainfall_7d
+    }])
+
+    next_day_prediction = model.predict(input_data)[0]
+    predicted_change = next_day_prediction - water_level
+
+    predicted_level_percent = (
+        (next_day_prediction - 403.55) / (422.76 - 403.55)
+    ) * 100
+
+    predicted_risk_score = (
+        0.6 * predicted_level_percent
+        + 0.4 * max(0, predicted_change) / 0.15 * 100
+    )
+
+    predicted_risk_score = max(0, min(100, predicted_risk_score))
+
+    if predicted_risk_score < 40:
+        predicted_risk = "GREEN"
+    elif predicted_risk_score < 70:
+        predicted_risk = "YELLOW"
+    else:
+        predicted_risk = "RED"
+
+    return {
+        "water_level": water_level,
+        "rainfall_1d": rainfall_1d,
+        "rainfall_3d": rainfall_3d,
+        "rainfall_7d": rainfall_7d,
+        "next_day_prediction": round(float(next_day_prediction), 3),
+        "predicted_change": round(float(predicted_change), 3),
+        "predicted_risk_score": round(float(predicted_risk_score), 2),
+        "predicted_risk": predicted_risk
+    }
