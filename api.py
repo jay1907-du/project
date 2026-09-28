@@ -297,4 +297,4 @@ def live_predict(
         ),
         "predicted_risk": predicted_risk
     }
-```
+
